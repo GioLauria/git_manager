@@ -1,19 +1,15 @@
 #!/bin/bash
 #set -x
 declare -A folder
-
 _detailed_changes=$1
 _switch=$2
 _release=$3
-
-_commit_string="Commit of `date +%Y%m%d` - `date +%s` - "               #####
-_remote_alias="origin"                                                  #####
-_main_branch="main"                                                     #####
-_path=`pwd`                                                             #####
+_commit_string="Commit of `date +%Y%m%d` - `date +%s` - "               
+_remote_alias="origin"                                                  
+_main_branch="main"                                                     
+_path=`pwd`                                                             
 _MAXIMUMUM_PARAMS=1      
-_FOLLOW_TAGS=false                                               #####
-
-
+_FOLLOW_TAGS=false                                               
 if [[ $# -lt $_MAXIMUMUM_PARAMS ]]
 then
     echo "Wrong Syntax."
@@ -87,9 +83,9 @@ then
         read -p "Enter your git email for commits: " _email
     fi
     _file_name=$0
-    _remote_project_name="https://github.com/$_github_user/$_project_name.git"  #####
-    _comment_char="\\"                            #####
- 
+    _remote_project_name="https://github.com/$_github_user/$_project_name.git"  
+    _comment_char="\\"                            
+
     rm -rf .git
     git init
     git config user.name "$_user_name"
@@ -100,16 +96,13 @@ then
     git checkout -b $_main_branch
     git add *
     git commit -m "$_commit_string REPO INIT"
-#    git push --set-upstream origin $_main_branch  # After first commit
     git push -u $_remote_alias $_main_branch --force    # overwrite REMOTE !!!!
 else
     cd "${_path}"
     # array that contains folder names to run the commit onto
     folder[0,0]="/."
      # create other array entries if needed
-
     _len_array=${#folder[@]}
-
     for i in $((_len_array-1))  
     do
         cd  "$_path${folder[$i,0]}"
