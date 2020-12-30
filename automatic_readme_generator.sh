@@ -29,7 +29,7 @@ do
     #      _notes=`echo -e "$_notes \n\`git log ${tags[$((_index_tags))]}..HEAD --oneline | grep "Commit of"\`"`
     # fi     
 done
-_notes=`echo "$_notes" | tac`
+#_notes=`echo "$_notes" | tac`
 
 sed -i '/RELEASE NOTES/q' README.md
 sed -i '/RELEASE NOTES/r/dev/stdin' README.md <<<"$_notes"
