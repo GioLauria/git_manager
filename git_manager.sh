@@ -96,7 +96,9 @@ then
     git checkout -b $_main_branch
     git add *
     git commit -m "$_commit_string REPO INIT"
-    git push -u $_remote_alias $_main_branch --force    # overwrite REMOTE !!!!
+    _current_head=`git log --oneline | head -n1 | awk '{ print $1 }'`
+    git tag v0.0.1 $_current_head
+    git push -u $_remote_alias $_main_branch --force --follow-tagging   # overwrite REMOTE !!!!
 else
     cd "${_path}"
     # array that contains folder names to run the commit onto
@@ -124,7 +126,7 @@ else
                 git checkout $_main_branch
                 git merge $_current_branch
             fi
-            git push origin --tags
+            git push origin --tags -f
             git push origin
         fi
      
