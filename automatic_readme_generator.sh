@@ -16,11 +16,11 @@ do
     if [[ $_index_tags == 0 ]]
     then
         # the first output has to be the REPO INIT and his tag
-        _notes=`echo -e "\n${tags[$_index_tags]}"`
-        _notes=`echo -e "$_notes \n\`git log $_first_commit --oneline | grep \"Commit of\"\`"`      
+        _notes=`echo -e "<br>${tags[$_index_tags]}"`
+        _notes=`echo -e "$_notes <br>\`git log $_first_commit --oneline | grep \"Commit of\"\`"`      
     else
-        _notes=`echo -e "$_notes \n${tags[$_index_tags]}"`
-        _notes=`echo -e "$_notes \n\`git log ${tags[$((_index_tags-1))]}..${tags[$((_index_tags))]} --oneline | grep "Commit of"\`"`
+        _notes=`echo -e "$_notes <br>${tags[$_index_tags]}"`
+        _notes=`echo -e "$_notes <br>\`git log ${tags[$((_index_tags-1))]}..${tags[$((_index_tags))]} --oneline | grep "Commit of"\`"`
         
     fi
     # Show orphan commits (With no tag parent)
