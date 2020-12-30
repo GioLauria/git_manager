@@ -133,5 +133,4 @@ else
      
     done
 fi
-echo $url
 sh automatic_readme_generator.sh
