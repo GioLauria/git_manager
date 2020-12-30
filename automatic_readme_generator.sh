@@ -39,7 +39,7 @@ do
             else    
                 _temp_output=`echo $_temp_output_raw | sed "s;$i;<br><a href=\"$_url/commit/$i\">$i<\/a>;g"`
             fi
-            _temp_output_raw=$_temp_output
+            echo $_temp_output > _temp_output_raw
             _counter=$(( _counter + 1 ))
             done
         _notes=`echo -e "$_notes <br>$_temp_output"`
