@@ -22,10 +22,12 @@ do
         _notes=`printf "$_notes \n\n${tags[$_index_tags]}"`
         _notes=`printf "$_notes \n\`git log ${tags[$((_index_tags-1))]}..${tags[$((_index_tags))]} --oneline | grep "Commit of"\`"`
     fi
-     
+    if [[ $_index_tags == $((_len_array-1)) ]]
+    then
+         _notes=`printf "$_notes \n\`git log ${tags[$((_index_tags))]}..HEAD --oneline | grep "Commit of"\`"`
+    fi     
 done
 
 #echo $_notes
 sed -i '/RELEASE NOTES/q' README.md
-sleep 1
 sed -i '/RELEASE NOTES/r/dev/stdin' README.md <<<"$_notes"
