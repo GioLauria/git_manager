@@ -16,14 +16,14 @@ do
     if [[ $_index_tags == 0 ]]
     then
         # the first output has to be the REPO INIT and his tag
-        _notes=`echo -e "$_notes <br>-----------------------------<br>"`
-        _notes=`echo -e "$_notes ${tags[$_index_tags]}"`
+        #_notes=`echo -e "$_notes <br>-----------------------------<br>"`
+        _notes=`echo -e "<b>$_notes ${tags[$_index_tags]}</b>"`
         _notes=`echo -e "$_notes <br>-----------------------------"`
         _temp_output_raw=`git log $_first_commit --oneline | grep "Commit of"`
         _notes=`echo -e "$_notes <br>$_temp_output_raw"`      
     else
         _notes=`echo -e "$_notes <br>-----------------------------<br>"`
-        _notes=`echo -e "$_notes ${tags[$_index_tags]}"`
+        _notes=`echo -e "$_notes <b>${tags[$_index_tags]}</b>"`
         _notes=`echo -e "$_notes <br>-----------------------------"`
         _temp_output_raw=`git log ${tags[$((_index_tags-1))]}..${tags[$((_index_tags))]} --oneline | grep "Commit of"|tac`
         _temp_output_id=`echo -e "$_temp_output_raw" | awk -F" " {'print $1'}`
@@ -47,5 +47,5 @@ do
     #      _notes=`echo -e "$_notes \n\`git log ${tags[$((_index_tags))]}..HEAD --oneline | grep "Commit of"\`"`
     # fi     
 done
-sed -i '/RELEASE NOTES/q' README.md
-sed -i '/RELEASE NOTES/r/dev/stdin' README.md <<<"$_notes"
+sed -i '/rlsnts/q' README.md
+sed -i '/rlsnts/r/dev/stdin' README.md <<<"$_notes"
