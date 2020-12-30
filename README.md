@@ -12,6 +12,7 @@ USAGE
 
 RELEASE NOTES:
 /dev/stdin
+/dev/stdin
 8ae5b5c 
 2586c65 Commit of 20201229 - 1609282505 -  REPO INIT 
 

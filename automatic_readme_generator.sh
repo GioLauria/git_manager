@@ -26,4 +26,4 @@ do
 done
 
 #echo $_notes
-sed -i '/RELEASE NOTES/a/dev/stdin' README.md <<<"$_notes"
+sed -i '/RELEASE NOTES/i/dev/stdin' README.md <<<"$_notes"
