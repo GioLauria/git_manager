@@ -28,6 +28,5 @@ do
     # fi     
 done
 
-#echo $_notes
 sed -i '/RELEASE NOTES/q' README.md
 sed -i '/RELEASE NOTES/r/dev/stdin' README.md <<<"$_notes"
