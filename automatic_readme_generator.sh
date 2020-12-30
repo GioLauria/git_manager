@@ -4,7 +4,6 @@ _first_commit=`git log --oneline | tail -n1 | awk '{print $1}'|sort -r`
 _list_of_tags=`git tag`
 _index_tags=0
 _notes=""
-set -x
 _url=`git remote  -v | grep push | awk '{ print $2 }' | sed  s/'\.git'//g`
 
 for my_tag in `echo $_list_of_tags`
@@ -26,7 +25,7 @@ do
         _notes=`echo -e "$_notes <br>$_temp_output_raw"`      
     else
         _notes=`echo -e "$_notes <br>-----------------------------<br>"`
-        _notes=`echo -e "$_notes <b>${tags[$_index_tags]}</b>"`
+        _notes=`echo -e "$_notes <b><a href="$_url/tree/${tags[$_index_tags]}">${tags[$_index_tags]}</a></b>"`
         _notes=`echo -e "$_notes <br>-----------------------------"`
         _temp_output_raw=`git log ${tags[$((_index_tags-1))]}..${tags[$((_index_tags))]} --oneline | grep "Commit of"|tac`
         _temp_output_id=`echo -e "$_temp_output_raw" | awk -F" " {'print $1'}`
