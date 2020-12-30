@@ -32,4 +32,7 @@ v0.2.2
 8dc41eb #10 - Commit of 20201230 - 1609299397 - Fix: README Errors 
 
 v0.2.3 
-88aa78f #11 - Commit of 20201230 - 1609299431 - Fix: README Errors
+88aa78f #11 - Commit of 20201230 - 1609299431 - Fix: README Errors 
+d5fd75c #15 - Commit of 20201230 - 1609300601 - Fix: Added orphan commits to Release Notes
+8edc8f7 #13 - Commit of 20201230 - 1609299653 - Fix: README generation issues
+fdef41f #12 - Commit of 20201230 - 1609299538 - Fix: Removing Tags
