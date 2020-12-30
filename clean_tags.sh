@@ -12,10 +12,6 @@ echo "Cleaning all Patches release of non current tags"
 echo $_tags_to_remove
 for my_tag in `echo $_tags_to_remove`
 do
-    echo "git tag -d $my_tag"
     git tag -d $my_tag
 done
-echo "git push origin --tags"
 git push origin --tags
-echo "Remaining Tags"
-git tag
