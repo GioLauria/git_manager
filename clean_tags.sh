@@ -10,8 +10,9 @@ _tags_to_remove=`git tag | grep -v "\.0" | grep -v "CURRENT" | grep -v "$_NEW_TA
 
 echo "Cleaning all Patches release of non current tags"
 echo $_tags_to_remove
-for my_tag in `echo $_tags_to_remove`
+for _my_tag in `echo $_tags_to_remove`
 do
-    git tag -d $my_tag
+    git tag -d $_my_tag
+    git push --delete origin $_my_tag
 done
-git push origin --tags --force
+
