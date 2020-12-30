@@ -1,4 +1,4 @@
-#set -x
+set -x
 declare -A tags
 _first_commit=`git log --oneline | tail -n1 | awk '{print $1}'|sort -r`
 _list_of_tags=`git tag`
@@ -17,11 +17,15 @@ do
     then
         # the first output has to be the REPO INIT and his tag
         _notes=`echo -e "<br>${tags[$_index_tags]}"`
-        _notes=`echo -e "$_notes <br>\`git log $_first_commit --oneline | grep \"Commit of\"\`"`      
+        _temp_output_raw=`git log $_first_commit --oneline | grep "Commit of"`
+        #_temp_output=`sed 's/"#"/"<br>#"/g' $_temp_output_raw`
+        _notes=`echo -e "$_notes <br>$_temp_output_raw"`      
     else
         _notes=`echo -e "$_notes <br>${tags[$_index_tags]}"`
-        _notes=`echo -e "$_notes <br>\`git log ${tags[$((_index_tags-1))]}..${tags[$((_index_tags))]} --oneline | grep "Commit of"\`"`
-        
+        _temp_output_raw=`git log ${tags[$((_index_tags-1))]}..${tags[$((_index_tags))]} --oneline | grep "Commit of"`
+        _temp_output_id=`echo $_temp_output_raw | awk -F" " '{print $0}'`
+        _temp_output=`echo $_temp_output_raw | sed s/"$_temp_output_id"/"<br>$_temp_output_id"/g`
+        _notes=`echo -e "$_notes <br>$_temp_output"`
     fi
     # Show orphan commits (With no tag parent)
     # if [[ $_index_tags == $((_len_array-1)) ]]
