@@ -1,4 +1,4 @@
-set -x
+#set -x
 declare -A tags
 _first_commit=`git log --oneline | tail -n1 | awk '{print $1}'|sort -r`
 _list_of_tags=`git tag`
@@ -34,7 +34,7 @@ do
         do
             if [[ $_counter == 0 ]]
             then
-                _temp_output=`echo $_temp_output_raw | sed "s/$i/'<a href=\"$_url\/commit\/$i\">$i<\/a>'/g"`
+                _temp_output=`echo $_temp_output_raw | sed "s;$i;<a href=\"$_url/commit/$i\">$i<\/a>;g"`
             #else    
                 #_temp_output=`echo $_temp_output_raw | sed "s/$i/<br><a href=\"$_url\/commit\/$i\">$i</a>/g"`
             fi
