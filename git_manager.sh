@@ -121,7 +121,6 @@ else
             fi
             if [[ $_current_branch != $_main_branch ]]
             then    
-                git rebase $_main_branch
                 git checkout $_main_branch
                 git merge $_current_branch
             fi
