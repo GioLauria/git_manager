@@ -4,7 +4,10 @@ _first_commit=`git log --oneline | tail -n1 | awk '{print $1}'|sort -r`
 _list_of_tags=`git tag`
 _index_tags=0
 _notes=""
+set -x
 _url=$1
+
+exit
 for my_tag in `echo $_list_of_tags`
 do
     tags[$_index_tags]="$my_tag"   
