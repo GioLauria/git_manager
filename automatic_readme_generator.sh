@@ -24,7 +24,7 @@ do
         _notes=`echo -e "$_notes <br>${tags[$_index_tags]}"`
         _temp_output_raw=`git log ${tags[$((_index_tags-1))]}..${tags[$((_index_tags))]} --oneline | grep "Commit of"`
         _temp_output_id=`echo $_temp_output_raw | awk -F" " '{print $0}'`
-        _temp_output=`echo $_temp_output_raw | sed s/"$_temp_output_id"/"<br>$_temp_output_id"/g`
+        _temp_output=`echo $_temp_output_raw | sed s/"$_temp_output_id"/"$_temp_output_id"/g`
         _notes=`echo -e "$_notes <br>$_temp_output"`
     fi
     # Show orphan commits (With no tag parent)
