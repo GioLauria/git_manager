@@ -14,4 +14,4 @@ for my_tag in `echo $_tags_to_remove`
 do
     git tag -d $my_tag
 done
-git push origin --tags
+git push origin --tags --force
