@@ -16,17 +16,36 @@ do
     if [[ $_index_tags == 0 ]]
     then
         # the first output has to be the REPO INIT and his tag
-        _notes=`printf "${tags[$_index_tags]}"`
-        _notes=`printf "$_notes \n\`git log $_first_commit --oneline | grep \"Commit of\"\`"`
+        _notes=`echo -e "$_notes <br>-----------------------------<br>"`
+        _notes=`echo -e "$_notes ${tags[$_index_tags]}"`
+        _notes=`echo -e "$_notes <br>-----------------------------"`
+        _temp_output_raw=`git log $_first_commit --oneline | grep "Commit of"`
+        _notes=`echo -e "$_notes <br>$_temp_output_raw"`      
     else
-        _notes=`printf "$_notes \n\n${tags[$_index_tags]}"`
-        _notes=`printf "$_notes \n\`git log ${tags[$((_index_tags-1))]}..${tags[$((_index_tags))]} --oneline | grep "Commit of"\`"`
+        _notes=`echo -e "$_notes <br>-----------------------------<br>"`
+        _notes=`echo -e "$_notes ${tags[$_index_tags]}"`
+        _notes=`echo -e "$_notes <br>-----------------------------"`
+        _temp_output_raw=`git log ${tags[$((_index_tags-1))]}..${tags[$((_index_tags))]} --oneline | grep "Commit of"|tac`
+        _temp_output_id=`echo -e "$_temp_output_raw" | awk -F" " {'print $1'}`
+        _counter=0
+        for i in `echo -e "$_temp_output_id"`
+        do
+            if [[ $_counter == 0 ]]
+            then
+                _temp_output=`echo $_temp_output_raw | sed "s/$i/$i/g"`
+            else    
+                _temp_output=`echo $_temp_output_raw | sed "s/$i/<br>$i/g"`
+            fi
+            _temp_output_raw=$_temp_output
+            _counter=$(( _counter + 1 ))
+            done
+        _notes=`echo -e "$_notes <br>$_temp_output"`
     fi
+    # Show orphan commits (With no tag parent)
     # if [[ $_index_tags == $((_len_array-1)) ]]
     # then
-    #      _notes=`printf "$_notes \n\`git log ${tags[$((_index_tags))]}..HEAD --oneline | grep "Commit of"\`"`
+    #      _notes=`echo -e "$_notes \n\`git log ${tags[$((_index_tags))]}..HEAD --oneline | grep "Commit of"\`"`
     # fi     
 done
-_notes=`echo $_notes | sort -r`
 sed -i '/RELEASE NOTES/q' README.md
 sed -i '/RELEASE NOTES/r/dev/stdin' README.md <<<"$_notes"
