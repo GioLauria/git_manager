@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+#set -x
 declare -A folder
 _detailed_changes=$1
 _switch=$2
