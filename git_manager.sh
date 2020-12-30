@@ -84,6 +84,7 @@ then
     fi
     _file_name=$0
     _remote_project_name="https://github.com/$_github_user/$_project_name.git"  
+    _url="https://github.com/$_github_user/$_project_name"
     _comment_char="\\"                            
 
     rm -rf .git
@@ -132,4 +133,4 @@ else
      
     done
 fi
-sh automatic_readme_generator.sh
+sh automatic_readme_generator.sh $_url
