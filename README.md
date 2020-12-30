@@ -33,6 +33,9 @@ v0.2.2
 
 v0.2.3 
 88aa78f #11 - Commit of 20201230 - 1609299431 - Fix: README Errors 
+
+v0.2.4 
+3424a2b #18 - Commit of 20201230 - 1609301150 - Fix: Hide orphan commits
 9261345 #17 - Commit of 20201230 - 1609301023 - Removed garbage
 d9f4b80 #16 - Commit of 20201230 - 1609300726 - Uploaded new README file
 d5fd75c #15 - Commit of 20201230 - 1609300601 - Fix: Added orphan commits to Release Notes
