@@ -1,18 +1,21 @@
 #!/bin/bash
-set -x
-last_tag=`git tag | tail -n1`
+#set -x
+last_tag=`git tag | tail -n1` 
 _minor=`echo $last_tag | awk -F. '{print $2}'`
-_major=`echo $last_tag | awk -F. '{print $1}' | awk -F"v" '{print $2}'  `
-
+_major=`echo $last_tag | awk -F. '{print $1}' | awk -F"v" '{print $2}'`
 
 _NEW_TAG_WITHOUT_PATCH=`echo "v$_major.$_minor"`
 _NEW_TAG_WITHOUT_MINOR=`echo "v$_major"`
+_tags_to_remove=`git tag | grep -v "\.0" | grep -v "CURRENT" | grep -v "$_NEW_TAG_WITHOUT_PATCH"`
 
 echo "Cleaning all Patches release of non current tags"
-for _ind in {0..$_minor}
+echo $_tags_to_remove
+for my_tag in `echo $_tags_to_remove`
 do
-    _minor=$(( _minor - _ind ))
-    _NEW_TAG_WITHOUT_PATCH=`echo "v$_major.$_minor"`
+    echo "git tag -d $my_tag"
+    git tag -d $my_tag
 done
-#git tag -l "$_NEW_TAG_WITHOUT_PATCH*" | while read myTag;do git tag -d $myTag;done
-#git push origin --tags
+echo "git push origin --tags"
+git push origin --tags
+echo "Remaining Tags"
+git tag
