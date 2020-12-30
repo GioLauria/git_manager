@@ -121,6 +121,7 @@ else
             then 
                 _build_number=$_current_head
                 git tag $_NEW_TAG_WITHOUT_BUILD $_current_head
+                git tag "CURRENT" $_current_head -f
             fi
             if [[ $_current_branch != $_main_branch ]]
             then    
