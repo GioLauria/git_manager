@@ -7,7 +7,28 @@
 ##################################
 <h2><nospace>U S A G E</h2>
 ##################################
-
+<p>git_manager.sh init
+<li>Enter gitHub user (What is the account name owning the repo)</li>
+<li>Enter the project name (The name of the repo)</li>
+<li>Enter the git repo username (Who is doing commits on local copy)</li>
+<li>Enter the git repo email (Email of the person doing the commits on local copy)</li>
+<li>This will initialize a brand new local repo and sync it to the GitHub origin</li>
+<li>A tag v0.0.1 is associated to the first commit of the repo
+<hr>
+<p>git_manager.sh "Commit String"
+<li>This will go staging and committing the changes in the working directory</li>
+<li>If on a branch rather than "main" it will checkout and merge to main
+<hr>
+<p>git_manager.sh "Commit String" [&nbsp;-t&nbsp;&nbsp;  -m&nbsp;|-n&nbsp;|-p&nbsp;&nbsp;]
+<li>This will commit as before </li>
+<li>The tag -t will also create a tag against the last commit</li>
+<li>vM.m.p (v1.2.1)
+<li>-M will increment the major version
+<li>-m will increment the minor version
+<li>-n will increment the minor version
+<li>A "current" tag will be created pointing to the last tag created
+<li>When creating a new minor release all patches tags of non current releases will be removed
+<p>
 <p>
 ###################################
 <nospace><h2>R E L E A S E&nbsp;&nbsp;&nbsp;N O T E S:</h2>
