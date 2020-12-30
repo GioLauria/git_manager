@@ -18,7 +18,7 @@ do
     then
         # the first output has to be the REPO INIT and his tag
         #_notes=`echo -e "$_notes <br>-----------------------------<br>"`
-        _notes=`echo -e "<b><a href="$_urltree\${tags[$_index_tags]}">$_notes ${tags[$_index_tags]}</a></b>"`
+        _notes=`echo -e "<b><a href="$_url tree\${tags[$_index_tags]}">$_notes${tags[$_index_tags]}</a></b>"`
         _notes=`echo -e "$_notes <br>-----------------------------"`
         _temp_output_raw=`git log $_first_commit --oneline | grep "Commit of"`
         _notes=`echo -e "$_notes <br>$_temp_output_raw"`      
