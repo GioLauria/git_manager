@@ -52,7 +52,7 @@ then
             echo "Exiting"
             exit
         fi
-        _NEW_TAG_WITHOUT_BUILD=`echo "v$_major.$_minor.$_patch`
+        _NEW_TAG_WITHOUT_BUILD=`echo "v$_major.$_minor.$_patch"`
     else 
         echo "Switch $_switch not coded"
         echo "Exiting"
