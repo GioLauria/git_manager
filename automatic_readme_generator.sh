@@ -34,7 +34,7 @@ do
         do
             if [[ $_counter == 0 ]]
             then
-                _temp_output=`echo $_temp_output_raw | sed "s/$i/<a href="$_url\/commit\/$i\">$i</a>/g"`
+                _temp_output=`echo $_temp_output_raw | sed "s/$i/<a href=\"$_url\/commit\/$i\">$i</a>/g"`
             else    
                 _temp_output=`echo $_temp_output_raw | sed "s/$i/<br><a href=\"$_url\/commit\/$i\">$i</a>/g"`
             fi
