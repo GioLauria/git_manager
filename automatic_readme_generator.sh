@@ -27,6 +27,6 @@ do
     #      _notes=`printf "$_notes \n\`git log ${tags[$((_index_tags))]}..HEAD --oneline | grep "Commit of"\`"`
     # fi     
 done
-
+_notes=`echo $_notes | sort -r`
 sed -i '/RELEASE NOTES/q' README.md
 sed -i '/RELEASE NOTES/r/dev/stdin' README.md <<<"$_notes"

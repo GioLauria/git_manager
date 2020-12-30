@@ -40,4 +40,9 @@ v0.2.4
 d9f4b80 #16 - Commit of 20201230 - 1609300726 - Uploaded new README file
 d5fd75c #15 - Commit of 20201230 - 1609300601 - Fix: Added orphan commits to Release Notes
 8edc8f7 #13 - Commit of 20201230 - 1609299653 - Fix: README generation issues
-fdef41f #12 - Commit of 20201230 - 1609299538 - Fix: Removing Tags
+fdef41f #12 - Commit of 20201230 - 1609299538 - Fix: Removing Tags 
+
+v0.2.5 
+94be327 #21 - Commit of 20201230 - 1609301379 - DUMMY patch
+c2c69dc #20 - Commit of 20201230 - 1609301302 - Test: Sleep time on generator
+e1d25cc #19 - Commit of 20201230 - 1609301251 - Upload README
