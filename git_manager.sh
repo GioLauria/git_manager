@@ -132,3 +132,4 @@ else
      
     done
 fi
+sh automatic_readme_generator.sh
