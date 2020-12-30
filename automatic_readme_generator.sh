@@ -5,9 +5,8 @@ _list_of_tags=`git tag`
 _index_tags=0
 _notes=""
 set -x
-_url=$1
+_url=`git remote  -v | grep push | awk '{ print $2 }' | sed  s/'\.git'//g`
 
-exit
 for my_tag in `echo $_list_of_tags`
 do
     tags[$_index_tags]="$my_tag"   
