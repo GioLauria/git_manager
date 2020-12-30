@@ -1,6 +1,9 @@
 #set -x
 declare -A tags
 _first_commit=`git log --oneline | tail -n1 | awk '{print $1}'|sort -r`
+_temp_output_raw=""
+_temp_output=""
+_temp_output_id=""
 _list_of_tags=`git tag`
 _index_tags=0
 _notes=""
