@@ -110,10 +110,9 @@ else
     do
         cd  "$_path${folder[$i,0]}"
         git add -A
-        _commit_counter=`git log --oneline | wc -l`
         _current_branch=`git branch | grep "*" | awk {'print $2'}`
         _old_head=`git log --oneline | head -n1 | awk '{ print $1 }'`
-        git commit -m "#$((_commit_counter+1)) - $_commit_string$_detailed_changes"
+        git commit -m "$_commit_string$_detailed_changes"
         _current_head=`git log --oneline | head -n1 | awk '{ print $1 }'`
         if [[ $_old_head != $_current_head ]]
         then
