@@ -1,5 +1,6 @@
 #set -x
 declare -A tags
+echo "Automatic Readme Creation"
 _first_commit=`git log --oneline | tail -n1 | awk '{print $1}'|sort -r`
 _temp_output_raw=""
 _temp_output=""
