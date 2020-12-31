@@ -95,7 +95,7 @@ then
     git remote add $_remote_alias $_remote_project_name
     git checkout -b $_main_branch
     git add *
-    git commit -m "REPO INIT"
+    git commit -m "Initial commit"
     _current_head=`git log --oneline | head -n1 | awk '{ print $1 }'`
     git tag v0.0.1 $_current_head
     git push -u $_remote_alias $_main_branch --force --follow-tagging   # overwrite REMOTE !!!!
