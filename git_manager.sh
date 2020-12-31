@@ -4,7 +4,6 @@ declare -A folder
 _detailed_changes=$1
 _switch=$2
 _release=$3
-_commit_string="Commit of `date +%Y%m%d` - `date +%s` - "               
 _remote_alias="origin"                                                  
 _main_branch="main"                                                     
 _path=`pwd`                                                             
@@ -96,7 +95,7 @@ then
     git remote add $_remote_alias $_remote_project_name
     git checkout -b $_main_branch
     git add *
-    git commit -m "$_commit_string REPO INIT"
+    git commit -m "REPO INIT"
     _current_head=`git log --oneline | head -n1 | awk '{ print $1 }'`
     git tag v0.0.1 $_current_head
     git push -u $_remote_alias $_main_branch --force --follow-tagging   # overwrite REMOTE !!!!
@@ -112,7 +111,7 @@ else
         git add -A
         _current_branch=`git branch | grep "*" | awk {'print $2'}`
         _old_head=`git log --oneline | head -n1 | awk '{ print $1 }'`
-        git commit -m "$_commit_string$_detailed_changes"
+        git commit -m "$_detailed_changes"
         _current_head=`git log --oneline | head -n1 | awk '{ print $1 }'`
         if [[ $_old_head != $_current_head ]]
         then
