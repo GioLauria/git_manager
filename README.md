@@ -14,6 +14,7 @@
 <li>Enter the git repo email (Email of the person doing the commits on local copy)</li>
 <li>This will initialize a brand new local repo and sync it to the GitHub origin</li>
 <li>A tag v0.0.1 is associated to the first commit of the repo
+<li>A README is automatically generated for every tag created
 <hr>
 <p>git_manager.sh "Commit String"
 <li>This will go staging and committing the changes in the working directory</li>
