@@ -74,9 +74,14 @@ int main(void) {
                 /* convert commit ids to links */
                 char *s = strtok(out, "\n"); int first = 1;
                 while (s) {
-                    char id[64]; sscanf(s, "%63s", id);
-                    char link[256]; if (first) snprintf(link, sizeof(link), "<a href=\"%s/commit/%s\">%s</a>", repo_url, id, id);
-                    else snprintf(link, sizeof(link), "<br><a href=\"%s/commit/%s\">%s</a>", repo_url, id, id);
+                    char id[64]; if (sscanf(s, "%63s", id) < 1) { s = strtok(NULL, "\n"); continue; }
+                    /* point to commit message (rest of the line) */
+                    char *rest = s + strlen(id);
+                    while (*rest == ' ') rest++;
+                    /* Build link with id and include the commit message after it */
+                    char link[1024];
+                    if (first) snprintf(link, sizeof(link), "<a href=\"%s/commit/%s\">%s</a> %s", repo_url, id, id, rest);
+                    else snprintf(link, sizeof(link), "<br><a href=\"%s/commit/%s\">%s</a> %s", repo_url, id, id, rest);
                     strncat(notes, link, notes_cap-strlen(notes)-1);
                     first = 0; s = strtok(NULL, "\n");
                 }
