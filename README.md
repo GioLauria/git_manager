@@ -2,7 +2,7 @@
 
 Repository: https://github.com/GioLauria/git_manager
 
-_Generated: 2026-02-21 17:21:34 +0000_
+_Generated: 2026-02-21 17:28:41 +0000_
 
 ## Release Notes
 
@@ -98,4 +98,6 @@ _Generated: 2026-02-21 17:21:34 +0000_
 - [9b96e64](https://github.com/GioLauria/git_manager/commit/9b96e64f83318fbbc075b9a8a735d1f3a83515cb) - ci: fix create-release artifact paths and remove redundant download step
 - [1645223](https://github.com/GioLauria/git_manager/commit/164522317960c3575a0d8a0e204cdc4b10b0fbf7) - ci: use gh CLI for release/tag creation
 - [45cf5be](https://github.com/GioLauria/git_manager/commit/45cf5bed7e4619d3131d02865ca5409b9c67950d) - ci: avoid secrets in if, gate signing steps
+- [4eb43af](https://github.com/GioLauria/git_manager/commit/4eb43af429a3fe8c0ae832a76321270a59dd1efc) - chore(readme): regenerate README via automatic_readme_generator
+- [eb4a532](https://github.com/GioLauria/git_manager/commit/eb4a5323e9431ce6518ca124d5ca95b13832faa0) - ci: add workflow_dispatch trigger to build.yml
 
