@@ -14,6 +14,10 @@ automatic_readme_generator
 # Temporary/readme artifacts
 README.md.tmp
 
+# Runtime dumps from automatic_readme_generator
+dump*.json
+dump.txt
+
 # Build artifacts
 /build/
 
