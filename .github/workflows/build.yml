@@ -167,11 +167,8 @@ jobs:
         with:
           name: c-tools-windows
           path: ./artifacts
-      - name: Download release notes
-        uses: actions/download-artifact@v4
-        with:
-          name: release-notes
-          path: ./artifacts
+      # release notes are included in the linux artifact at ./artifacts/release_notes.md
+      # (no separate download step needed)
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -233,13 +230,13 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: README.md
+          asset_path: ./artifacts/README.md
           asset_name: README.md
           asset_content_type: text/markdown
       - name: Upload LICENSE
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: LICENSE
+          asset_path: ./artifacts/LICENSE
           asset_name: LICENSE
           asset_content_type: text/plain
