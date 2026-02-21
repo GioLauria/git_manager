@@ -2,7 +2,7 @@
 
 Repository: https://github.com/GioLauria/git_manager
 
-_Generated: 2026-02-21 16:56:47 +0000_
+_Generated: 2026-02-21 17:21:34 +0000_
 
 ## Release Notes
 
@@ -88,4 +88,14 @@ _Generated: 2026-02-21 16:56:47 +0000_
 - [ad0814e](https://github.com/GioLauria/git_manager/commit/ad0814eb1dc12baf831e5d784ba5c0a644056d4d) - ci: package built binaries into zip and attach zip to release
 - [3b03e15](https://github.com/GioLauria/git_manager/commit/3b03e156e14963a087fea613bf964cf9966cedf0) - chore(readme): regenerate README via automatic_readme_generator
 - [1c1289b](https://github.com/GioLauria/git_manager/commit/1c1289b4ecdb3a7525de3fc0cc8e6aabfb498e18) - ci: add create-release job to attach linux and windows zips to GitHub Release
+- [a1c5aeb](https://github.com/GioLauria/git_manager/commit/a1c5aebc2118dc0f93b5180b809917b84018766c) - chore(readme): regenerate README via automatic_readme_generator
+- [9382671](https://github.com/GioLauria/git_manager/commit/93826714e46d1520d29131d7389589f2644a19c5) - ci: add checksums/signatures and use create-release + upload-release-asset to attach linux+windows zips and docs
+- [c4b0792](https://github.com/GioLauria/git_manager/commit/c4b079276d8728fa7ecc99fa09618fb0581cefac) - ci(windows): include raw .exe outputs and add debug listing
+- [e9c6319](https://github.com/GioLauria/git_manager/commit/e9c63195f144db8ca2011f9ce28c53f53870e303) - chore(ci): trigger release creation (CI test)
+- [1c9ea8a](https://github.com/GioLauria/git_manager/commit/1c9ea8ac178d8bcbe8f79c35deb268197f3fc178) - ci: rerun workflow after YAML fix
+- [adc7809](https://github.com/GioLauria/git_manager/commit/adc780916b57503c529f5a93a0a09b62453db4dd) - ci: fix workflow if/exists syntax
+- [8c39eba](https://github.com/GioLauria/git_manager/commit/8c39ebadc98b1bacce69ded7971d301a6a87e746) - ci: fix workflow YAML (quote name with colon) and add local validator
+- [9b96e64](https://github.com/GioLauria/git_manager/commit/9b96e64f83318fbbc075b9a8a735d1f3a83515cb) - ci: fix create-release artifact paths and remove redundant download step
+- [1645223](https://github.com/GioLauria/git_manager/commit/164522317960c3575a0d8a0e204cdc4b10b0fbf7) - ci: use gh CLI for release/tag creation
+- [45cf5be](https://github.com/GioLauria/git_manager/commit/45cf5bed7e4619d3131d02865ca5409b9c67950d) - ci: avoid secrets in if, gate signing steps
 
