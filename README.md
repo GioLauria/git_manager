@@ -32,6 +32,26 @@
 <p>
 <p>
 ###################################
+<nospace><h2>C BUILD & USAGE</h2>
+###################################
+<p>
+This repository includes C translations of the original shell scripts and a Makefile to build them.
+
+- Files: See `git_manager.c`, `clean_tags.c`, `automatic_readme_generator.c`.
+- Build: run `make` or build a single tool, for example:
+
+```sh
+make automatic_readme_generator
+# or
+gcc -O2 -Wall -o automatic_readme_generator automatic_readme_generator.c
+```
+
+- Notes:
+	- The C programs shell out to `git` and expect POSIX tools (grep, awk) to be available.
+	- On Windows use WSL, Git Bash, or MSYS2 to build and run the tools.
+	- Built binaries are ignored by `.gitignore`; CI is recommended to produce release binaries if needed.
+
+###################################
 <nospace><h2>R E L E A S E&nbsp;&nbsp;&nbsp;N O T E S:</h2>
 ###################################<p>
 <rlsnts>
