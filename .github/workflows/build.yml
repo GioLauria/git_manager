@@ -117,7 +117,7 @@ jobs:
           for f in git_manager clean_tags automatic_readme_generator; do
             if [ -f "$f" ]; then mv "$f" "$f.exe"; fi
           done
-      - name: Debug: list build outputs
+      - name: "Debug: list build outputs"
         run: |
           echo "Workspace files:"; ls -la
           echo "Exe files:"; ls -la *.exe || true
