@@ -36,6 +36,11 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           set -e
+          remote_url=$(git config --get remote.origin.url || echo "")
+          if ! echo "$remote_url" | grep -q "${GITHUB_REPOSITORY}"; then
+            echo "Remote origin ($remote_url) does not match ${GITHUB_REPOSITORY}; skipping tag creation to avoid tagging from forks."
+            exit 0
+          fi
           latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           if [ -z "$latest_tag" ]; then
             echo "No existing tags; creating v0.1.0"

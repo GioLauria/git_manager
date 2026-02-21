@@ -5,7 +5,9 @@
 #include <time.h>
 
 static char *run_command_capture(const char *cmd) {
-    FILE *fp = popen(cmd, "r");
+    char fullcmd[1024];
+    snprintf(fullcmd, sizeof(fullcmd), "%s 2>&1", cmd);
+    FILE *fp = popen(fullcmd, "r");
     if (!fp) return NULL;
     size_t cap = 4096; char *buf = malloc(cap); if (!buf) { pclose(fp); return NULL; }
     size_t len = 0;
@@ -16,6 +18,15 @@ static char *run_command_capture(const char *cmd) {
     pclose(fp);
     if (len == 0) { free(buf); return NULL; }
     buf[len] = '\0';
+
+    /* append command and its output to dump.txt */
+    FILE *dump = fopen("dump.txt","a");
+    if (dump) {
+        fprintf(dump, "=== CMD: %s ===\n", cmd);
+        fwrite(buf, 1, len, dump);
+        fprintf(dump, "\n=== END CMD: %s ===\n\n", cmd);
+        fclose(dump);
+    }
     return buf;
 }
 
@@ -28,6 +39,8 @@ static char *trim(char *s) {
 }
 
 int main(void) {
+    /* wipe dump file at start */
+    FILE *dw = fopen("dump.txt","w"); if (dw) fclose(dw);
     /* get tags sorted by creation date (oldest first) */
     char *tags_out = run_command_capture("git for-each-ref --sort=creatordate --format=%(refname:short) refs/tags");
     if (!tags_out) {
