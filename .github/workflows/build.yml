@@ -1,5 +1,8 @@
 name: Build C tools
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [ main ]
@@ -12,10 +15,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Install build dependencies
         run: sudo apt-get update && sudo apt-get install -y build-essential
       - name: Build
         run: make
+      - name: Generate README
+        run: |
+          chmod +x automatic_readme_generator
+          ./automatic_readme_generator
+      - name: Commit README
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "chore(readme): regenerate README via automatic_readme_generator" || echo "No changes to commit"
+          git push origin HEAD:main || echo "push failed"
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -26,20 +42,35 @@ jobs:
             automatic_readme_generator
 
   build-windows:
-    name: Build on Windows (MSYS2)
+    name: Build on Windows (bash)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Setup MSYS2
-        uses: msys2/setup-msys2@v2
+        with:
+          fetch-depth: 0
+      - name: Setup bash
+        uses: bash/setup-bash@v2
         with:
           update: true
       - name: Install toolchain
         run: pacman -S --noconfirm mingw-w64-x86_64-gcc mingw-w64-x86_64-make
-        shell: msys2
+        shell: bash
       - name: Build
         run: make
-        shell: msys2
+        shell: bash
+      - name: Generate README
+        run: |
+          chmod +x automatic_readme_generator
+          ./automatic_readme_generator
+        shell: bash
+      - name: Commit README
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "chore(readme): regenerate README via automatic_readme_generator" || echo "No changes to commit"
+          git push origin HEAD:main || echo "push failed"
+        shell: bash
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
