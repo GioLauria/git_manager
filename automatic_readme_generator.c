@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 static char *run_command_capture(const char *cmd) {
     FILE *fp = popen(cmd, "r");
@@ -18,21 +19,31 @@ static char *run_command_capture(const char *cmd) {
     return buf;
 }
 
-static char *trim(char *s) { if(!s) return s; while(*s && (*s=='\n' || *s=='\r')) s++; char *e = s + strlen(s)-1; while(e>=s && (*e=='\n' || *e=='\r')) *e--='\0'; return s; }
+static char *trim(char *s) {
+    if(!s) return s;
+    while(*s && (*s=='\n' || *s=='\r')) s++;
+    char *e = s + strlen(s) - 1;
+    while(e >= s && (*e=='\n' || *e=='\r')) *e-- = '\0';
+    return s;
+}
 
 int main(void) {
-    char *tags_out = run_command_capture("git tag");
-    if (!tags_out) return 0;
-    /* build list of tags excluding CURRENT */
+    /* get tags sorted by creation date (oldest first) */
+    char *tags_out = run_command_capture("git for-each-ref --sort=creatordate --format=%(refname:short) refs/tags");
+    if (!tags_out) {
+        /* no tags: we'll still collect commits into an "Unreleased" section */
+    }
     char **tags = NULL; size_t tcount = 0;
-    char *saveptr = NULL;
-    char *line = strtok_r(tags_out, "\n", &saveptr);
-    while (line) {
-        if (strcmp(line, "CURRENT")!=0 && strlen(line)>0) {
-            tags = realloc(tags, sizeof(char*)*(tcount+1));
-            tags[tcount++] = strdup(line);
+    if (tags_out) {
+        char *saveptr = NULL;
+        char *line = strtok_r(tags_out, "\n", &saveptr);
+        while (line) {
+            if (strcmp(line, "CURRENT")!=0 && strlen(line)>0) {
+                tags = realloc(tags, sizeof(char*)*(tcount+1));
+                tags[tcount++] = strdup(line);
+            }
+            line = strtok_r(NULL, "\n", &saveptr);
         }
-        line = strtok_r(NULL, "\n", &saveptr);
     }
 
     char *first_commit = run_command_capture("git rev-list --max-parents=0 HEAD");
@@ -53,57 +64,121 @@ int main(void) {
         }
     }
 
-    /* Build notes string */
-    size_t notes_cap = 8192; char *notes = malloc(notes_cap); notes[0]='\0';
-    for (size_t i=0;i<tcount;i++) {
-        if (i==0) {
-            char buf[1024]; snprintf(buf, sizeof(buf), "<b><a href=\"%s/tree/%s\">%s</a></b><br>-----------------------------<br>", repo_url, tags[i], tags[i]);
-            strncat(notes, buf, notes_cap-strlen(notes)-1);
-            /* commits for first tag: show commit message with "Commit of" if present */
-            if (first_commit) {
-                char cmd[256]; snprintf(cmd, sizeof(cmd), "git log %s --oneline | grep \"Commit of\"", trim(first_commit));
-                char *out = run_command_capture(cmd);
-                if (out) { strncat(notes, out, notes_cap-strlen(notes)-1); free(out); }
-            }
-        } else {
-            char buf[1024]; snprintf(buf, sizeof(buf), "<br>-----------------------------<br><b><a href=\"%s/tree/%s\">%s</a></b><br>-----------------------------<br>", repo_url, tags[i], tags[i]);
-            strncat(notes, buf, notes_cap-strlen(notes)-1);
-            char cmd[512]; snprintf(cmd, sizeof(cmd), "git log %s..%s --oneline | grep \"Commit of\"", tags[i-1], tags[i]);
-            char *out = run_command_capture(cmd);
-            if (out) {
-                /* convert commit ids to links */
-                char *s = strtok(out, "\n"); int first = 1;
-                while (s) {
-                    char id[64]; if (sscanf(s, "%63s", id) < 1) { s = strtok(NULL, "\n"); continue; }
-                    /* point to commit message (rest of the line) */
-                    char *rest = s + strlen(id);
-                    while (*rest == ' ') rest++;
-                    /* Build link with id and include the commit message after it */
-                    char link[1024];
-                    if (first) snprintf(link, sizeof(link), "<a href=\"%s/commit/%s\">%s</a> %s", repo_url, id, id, rest);
-                    else snprintf(link, sizeof(link), "<br><a href=\"%s/commit/%s\">%s</a> %s", repo_url, id, id, rest);
-                    strncat(notes, link, notes_cap-strlen(notes)-1);
-                    first = 0; s = strtok(NULL, "\n");
+    /* Build Markdown content */
+    size_t notes_cap = 32768; char *notes = malloc(notes_cap); if (!notes) return 0; notes[0]='\0';
+
+    /* Title and metadata */
+    char repo_name[256] = "repository";
+    if (repo_url[0]) {
+        /* extract last path component */
+        char *p = repo_url + strlen(repo_url) - 1;
+        while (p > repo_url && *p == '/') *p-- = '\0';
+        while (p > repo_url && *p != '/' && *p != ':') p--;
+        if (*p == '/' || *p == ':') p++;
+        snprintf(repo_name, sizeof(repo_name), "%s", p);
+    }
+
+    /* header */
+    char header[1024];
+    time_t now = time(NULL);
+    struct tm tm;
+#if defined(_WIN32) || defined(_WIN64)
+    {
+        struct tm *tmp = localtime(&now);
+        if (tmp) tm = *tmp; else memset(&tm, 0, sizeof(tm));
+    }
+#else
+    localtime_r(&now, &tm);
+#endif
+    char datestr[128]; strftime(datestr, sizeof(datestr), "%Y-%m-%d %H:%M:%S %z", &tm);
+    if (repo_url[0]) snprintf(header, sizeof(header), "# %s\n\nRepository: %s\n\n_Generated: %s_\n\n## Release Notes\n\n", repo_name, repo_url, datestr);
+    else snprintf(header, sizeof(header), "# %s\n\n_Generated: %s_\n\n## Release Notes\n\n", repo_name, datestr);
+    strncat(notes, header, notes_cap - strlen(notes) - 1);
+
+    /* Collect all commits (oldest first) */
+    char *all_commits = run_command_capture("git log --pretty=oneline --reverse --no-decorate");
+    size_t section_count = tcount + 1; /* extra section for Unreleased/untagged */
+    char ***commit_lists = calloc(section_count, sizeof(char**));
+    size_t *commit_counts = calloc(section_count, sizeof(size_t));
+
+    if (all_commits && strlen(all_commits) > 0) {
+        char *saveptr2 = NULL;
+        char *cline = strtok_r(all_commits, "\n", &saveptr2);
+        while (cline) {
+            char id[128]; if (sscanf(cline, "%127s", id) < 1) { cline = strtok_r(NULL, "\n", &saveptr2); continue; }
+            /* find tags that contain this commit */
+            char cmd_cont[256]; snprintf(cmd_cont, sizeof(cmd_cont), "git tag --contains %s", id);
+            char *contains = run_command_capture(cmd_cont);
+
+            int assigned = (int)tcount; /* default: Unreleased (last index) */
+            if (contains && tcount > 0) {
+                /* parse contains into exact tag names */
+                char *csave = NULL;
+                char *ctok = strtok_r(contains, "\n", &csave);
+                while (ctok) {
+                    char *ct_trim = trim(ctok);
+                    for (int ti = (int)tcount - 1; ti >= 0; ti--) {
+                        if (strcmp(ct_trim, tags[ti]) == 0) { assigned = ti; break; }
+                    }
+                    if (assigned != (int)tcount) break;
+                    ctok = strtok_r(NULL, "\n", &csave);
                 }
-                free(out);
             }
+
+            /* append line to commit_lists[assigned] */
+            commit_lists[assigned] = realloc(commit_lists[assigned], sizeof(char*) * (commit_counts[assigned] + 1));
+            commit_lists[assigned][commit_counts[assigned]++] = strdup(cline);
+
+            if (contains) free(contains);
+            cline = strtok_r(NULL, "\n", &saveptr2);
         }
     }
 
-    /* Replace README.md content after marker 'rlsnts' */
-    FILE *in = fopen("README.md","r");
-    if (!in) { fprintf(stderr, "README.md not found\n"); return 0; }
-    FILE *tmp = fopen("README.md.tmp","w");
-    char bufline[4096]; int found = 0;
-    while (fgets(bufline, sizeof(bufline), in)) {
-        fputs(bufline, tmp);
-        if (strstr(bufline, "rlsnts") && !found) { found = 1; break; }
+    /* Print sections for each tag (and Unreleased last) */
+    for (size_t i = 0; i < tcount; i++) {
+        char section[1024]; snprintf(section, sizeof(section), "### %s\n\n", tags[i]);
+        strncat(notes, section, notes_cap - strlen(notes) - 1);
+        if (commit_counts[i] == 0) {
+            strncat(notes, "- (no commits)\n\n", notes_cap - strlen(notes) - 1);
+        } else {
+            for (size_t j = 0; j < commit_counts[i]; j++) {
+                char *s = commit_lists[i][j]; char cid[64]; if (sscanf(s, "%63s", cid) < 1) continue; char *rest = s + strlen(cid); while (*rest == ' ') rest++;
+                char item[1024]; if (repo_url[0]) snprintf(item, sizeof(item), "- [%s](%s/commit/%s) - %s\n", cid, repo_url, cid, rest); else snprintf(item, sizeof(item), "- %s - %s\n", cid, rest);
+                strncat(notes, item, notes_cap - strlen(notes) - 1);
+            }
+            strncat(notes, "\n", notes_cap - strlen(notes) - 1);
+        }
     }
-    if (found) {
-        fputs(notes, tmp);
+
+    /* Unreleased / commits not in any tag */
+    char unreleased_header[128]; snprintf(unreleased_header, sizeof(unreleased_header), "### Unreleased\n\n");
+    strncat(notes, unreleased_header, notes_cap - strlen(notes) - 1);
+    if (commit_counts[tcount] == 0) {
+        strncat(notes, "- (no commits)\n\n", notes_cap - strlen(notes) - 1);
+    } else {
+        for (size_t j = 0; j < commit_counts[tcount]; j++) {
+            char *s = commit_lists[tcount][j]; char cid[64]; if (sscanf(s, "%63s", cid) < 1) continue; char *rest = s + strlen(cid); while (*rest == ' ') rest++;
+            char item[1024]; if (repo_url[0]) snprintf(item, sizeof(item), "- [%s](%s/commit/%s) - %s\n", cid, repo_url, cid, rest); else snprintf(item, sizeof(item), "- %s - %s\n", cid, rest);
+            strncat(notes, item, notes_cap - strlen(notes) - 1);
+        }
+        strncat(notes, "\n", notes_cap - strlen(notes) - 1);
     }
-    /* copy rest if needed (none) */
-    fclose(in); fclose(tmp);
+
+    /* free commit lists */
+    for (size_t i = 0; i < section_count; i++) {
+        if (commit_lists[i]) {
+            for (size_t j = 0; j < commit_counts[i]; j++) free(commit_lists[i][j]);
+            free(commit_lists[i]);
+        }
+    }
+    free(commit_lists); free(commit_counts);
+    if (all_commits) free(all_commits);
+
+    /* Overwrite README.md with generated Markdown */
+    FILE *outf = fopen("README.md.tmp","w");
+    if (!outf) { fprintf(stderr, "failed to open README.md.tmp for write\n"); free(notes); return 0; }
+    fputs(notes, outf);
+    fclose(outf);
     remove("README.md"); rename("README.md.tmp","README.md");
 
     if (tags) { for (size_t i=0;i<tcount;i++) free(tags[i]); free(tags); }
