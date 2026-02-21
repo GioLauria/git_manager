@@ -1,4 +1,4 @@
-/* automatic_readme_generator.c - generate README notes from tags and commits */
+/* automatic_readme_generator.c - generate README notes from tags and commits (C translation) */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

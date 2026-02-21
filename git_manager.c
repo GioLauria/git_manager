@@ -1,5 +1,5 @@
 /*
- * Minimal C translation of git_manager.sh
+ * C translation of the original git manager script.
  * Provides commit, optional tag-following and init flow.
  * Note: this program shells out to `git` for repository operations.
  */
@@ -116,8 +116,8 @@ int main(int argc, char **argv) {
             char tagcmd[256]; snprintf(tagcmd, sizeof(tagcmd), "git tag %s %s", new_tag_without_build, current_head);
             rc = system(tagcmd); if (rc != 0) fprintf(stderr, "git tag returned %d\n", rc);
             rc = system("git tag CURRENT $(git rev-parse --short HEAD) -f"); if (rc != 0) fprintf(stderr, "git tag CURRENT returned %d\n", rc);
-            rc = system("./clean_tags || sh clean_tags.sh"); if (rc != 0) fprintf(stderr, "clean_tags returned %d\n", rc);
-            rc = system("./automatic_readme_generator || sh automatic_readme_generator.sh"); if (rc != 0) fprintf(stderr, "automatic_readme_generator returned %d\n", rc);
+            rc = system("./clean_tags"); if (rc != 0) fprintf(stderr, "clean_tags returned %d\n", rc);
+            rc = system("./automatic_readme_generator"); if (rc != 0) fprintf(stderr, "automatic_readme_generator returned %d\n", rc);
         }
         if (cur_branch && strcmp(cur_branch, "main")!=0) {
             char cmd2[256]; snprintf(cmd2, sizeof(cmd2), "git checkout main && git merge %s", cur_branch);

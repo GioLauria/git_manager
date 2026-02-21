@@ -7,7 +7,7 @@
 ##################################
 <h2><nospace>U S A G E</h2>
 ##################################
-<p>git_manager.sh init
+<p>./git_manager init
 <li>Enter gitHub user (What is the account name owning the repo)</li>
 <li>Enter the project name (The name of the repo)</li>
 <li>Enter the git repo username (Who is doing commits on local copy)</li>
@@ -16,19 +16,16 @@
 <li>A tag v0.0.1 is associated to the first commit of the repo
 <li>A README is automatically generated for every tag created
 <hr>
-<p>git_manager.sh "Commit String"
+<p>./git_manager "Commit String"
 <li>This will go staging and committing the changes in the working directory</li>
 <li>If on a branch rather than "main" it will checkout and merge to main
 <hr>
-<p>git_manager.sh "Commit String" [&nbsp;-t&nbsp;&nbsp;  -m&nbsp;|-n&nbsp;|-p&nbsp;&nbsp;]
-<li>This will commit as before </li>
-<li>The tag -t will also create a tag against the last commit</li>
-<li>vM.m.p (v1.2.1)
-<li>-M will increment the major version
-<li>-m will increment the minor version
-<li>-n will increment the minor version
-<li>A "current" tag will be created pointing to the last tag created
-<li>When creating a new minor release all patches tags of non current releases will be removed
+<p>./git_manager "Commit String" [&nbsp;-t&nbsp;&nbsp;  -M&nbsp;|-m&nbsp;|-p&nbsp;&nbsp;]
+<li>Commits changes in the working directory.</li>
+<li>If run on a branch other than `main`, the tool will checkout and merge to `main`.</li>
+<li>When `-t` is provided the tool also creates a tag against the last commit.</li>
+<li>Tags follow `vM.m.p` format (e.g. `v1.2.1`). Use `-M` for major, `-m` for minor, `-p` for patch.</li>
+<li>A `CURRENT` tag points to the last created tag. Creating a new minor release removes old non-current patch tags.</li>
 <p>
 <p>
 ###################################

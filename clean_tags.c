@@ -1,4 +1,4 @@
-/* clean_tags.c - remove non-current patch tags similarly to clean_tags.sh */
+/* clean_tags.c - remove non-current patch tags (C translation) */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
