@@ -12,6 +12,8 @@ on:
 jobs:
   build-linux:
     name: Build on Ubuntu
+    outputs:
+      next_tag: ${{ steps.create_tag.outputs.next_tag }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -72,36 +74,22 @@ jobs:
           git tag -a "$next_tag" -m "Release $next_tag"
           git push origin "$next_tag"
           echo "next_tag=$next_tag" >> $GITHUB_OUTPUT
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: c-tools-linux
-          path: |
-            git_manager
-            clean_tags
-            automatic_readme_generator
       - name: Package Linux artifacts
-        if: steps.create_tag.outputs.next_tag != ''
-        env:
-          TAG: ${{ steps.create_tag.outputs.next_tag }}
         run: |
           sudo apt-get update
           sudo apt-get install -y zip
-          zip -j "c-tools-linux-${TAG}.zip" git_manager clean_tags automatic_readme_generator
-      - name: Create GitHub release and attach artifacts
+          zip -j c-tools-linux.zip git_manager clean_tags automatic_readme_generator || true
+      - name: Upload linux zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: c-tools-linux
+          path: c-tools-linux.zip
+      - name: Upload release notes
         if: steps.create_tag.outputs.next_tag != ''
-        env:
-          TAG: ${{ steps.create_tag.outputs.next_tag }}
-        run: |
-          set -e
-          echo "Installing GitHub CLI"
-          sudo apt-get update
-          sudo apt-get install -y gh
-          echo "$GITHUB_TOKEN" | gh auth login --with-token
-          echo "Creating release $TAG with release_notes.md"
-          # use packaged zip for linux artifacts
-          ASSET="c-tools-linux-${TAG}.zip"
-          gh release create "$TAG" "$ASSET" --title "$TAG" --notes-file release_notes.md || true
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release_notes.md
 
   build-windows-cross:
     name: Cross-build Windows executables on Ubuntu
@@ -130,7 +118,42 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: c-tools-windows
-          path: |
-            git_manager.exe
-            clean_tags.exe
-            automatic_readme_generator.exe
+          path: c-tools-windows.zip
+
+  create-release:
+    name: Create Release (attach both zips)
+    needs: [build-linux, build-windows-cross]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download linux zip
+        uses: actions/download-artifact@v4
+        with:
+          name: c-tools-linux
+          path: ./artifacts
+      - name: Download windows zip
+        uses: actions/download-artifact@v4
+        with:
+          name: c-tools-windows
+          path: ./artifacts
+      - name: Download release notes
+        uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+          path: ./artifacts
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh
+      - name: Create GitHub Release and attach both artifacts
+        if: needs.build-linux.outputs.next_tag != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.build-linux.outputs.next_tag }}
+        run: |
+          set -e
+          echo "$GITHUB_TOKEN" | gh auth login --with-token
+          ASSET_L=./artifacts/c-tools-linux.zip
+          ASSET_W=./artifacts/c-tools-windows.zip
+          NOTES=./artifacts/release_notes.md
+          echo "Creating release $TAG with assets: $ASSET_L $ASSET_W"
+          gh release create "$TAG" "$ASSET_L" "$ASSET_W" --title "$TAG" --notes-file "$NOTES" || true
