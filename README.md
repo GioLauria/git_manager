@@ -2,7 +2,7 @@
 
 Repository: https://github.com/GioLauria/git_manager
 
-_Generated: 2026-02-21 16:54:37 +0000_
+_Generated: 2026-02-21 16:55:44 +0000_
 
 ## Release Notes
 
@@ -84,4 +84,6 @@ _Generated: 2026-02-21 16:54:37 +0000_
 - [432de2c](https://github.com/GioLauria/git_manager/commit/432de2c6d78fdd1090bf2ecc42330eb756db22bd) - chore: resolve README conflict and update .gitignore
 - [7428969](https://github.com/GioLauria/git_manager/commit/7428969e41f7dae2581b1e02882d4f73a3293f9e) - chore(readme): regenerate README via automatic_readme_generator
 - [bd0aa0f](https://github.com/GioLauria/git_manager/commit/bd0aa0f1a253040d8c86ec5417746d80f2da379e) - ci: create annotated GitHub Release with Unreleased notes and upload artifacts
+- [715a7c8](https://github.com/GioLauria/git_manager/commit/715a7c893a6af1d44e4b0431f80efe6f2cc2cec9) - chore(readme): regenerate README via automatic_readme_generator
+- [ad0814e](https://github.com/GioLauria/git_manager/commit/ad0814eb1dc12baf831e5d784ba5c0a644056d4d) - ci: package built binaries into zip and attach zip to release
 
