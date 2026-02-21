@@ -20,7 +20,11 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install build dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+          # install GitHub CLI for release/tag queries
+          sudo apt-get install -y gh || true
       - name: Build
         run: make
       - name: Generate README
@@ -45,11 +49,12 @@ jobs:
             echo "next_tag=" >> $GITHUB_OUTPUT
             exit 0
           fi
-          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          # authenticate gh with the GITHUB_TOKEN so we can query releases
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token 2>/dev/null || true
+          latest_tag=$(gh release list --limit 1 --json tagName -q '.[0].tagName' 2>/dev/null || echo "")
           if [ -z "$latest_tag" ]; then
-            echo "No existing tags; creating v0.1.0"
+            echo "No existing release tags; creating v0.1.0"
             next_tag="v0.1.0"
-            # release notes: all commits
             git log --pretty=format:"- [%h](https://github.com/${GITHUB_REPOSITORY}/commit/%H) - %s" > release_notes.md
           else
             count=$(git rev-list ${latest_tag}..HEAD --count)
@@ -67,7 +72,6 @@ jobs:
             else
               next_tag="v$(date +%Y%m%d%H%M%S)"
             fi
-            # release notes: commits since latest_tag
             git log ${latest_tag}..HEAD --pretty=format:"- [%h](https://github.com/${GITHUB_REPOSITORY}/commit/%H) - %s" > release_notes.md
           fi
           echo "Creating tag $next_tag"
@@ -167,76 +171,22 @@ jobs:
         with:
           name: c-tools-windows
           path: ./artifacts
-      # release notes are included in the linux artifact at ./artifacts/release_notes.md
-      # (no separate download step needed)
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        with:
-          tag_name: ${{ needs.build-linux.outputs.next_tag }}
-          release_name: ${{ needs.build-linux.outputs.next_tag }}
-          body_path: ./artifacts/release_notes.md
-          draft: ${{ env.RELEASE_DRAFT }}
-          prerelease: ${{ env.RELEASE_PRERELEASE }}
+      # use gh to create the release and upload assets (simpler and more flexible)
+      - name: Install gh and authenticate
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh || true
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload linux zip to release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/c-tools-linux.zip
-          asset_name: c-tools-linux.zip
-          asset_content_type: application/zip
-      - name: Upload linux checksum
-        continue-on-error: true
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/c-tools-linux.zip.sha256
-          asset_name: c-tools-linux.zip.sha256
-          asset_content_type: text/plain
-      - name: Upload linux signature
-        continue-on-error: true
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/c-tools-linux.zip.sig
-          asset_name: c-tools-linux.zip.sig
-          asset_content_type: application/pgp-signature
-      - name: Upload windows zip to release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/c-tools-windows.zip
-          asset_name: c-tools-windows.zip
-          asset_content_type: application/zip
-      - name: Upload windows checksum
-        continue-on-error: true
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/c-tools-windows.zip.sha256
-          asset_name: c-tools-windows.zip.sha256
-          asset_content_type: text/plain
-      - name: Upload windows signature
-        continue-on-error: true
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/c-tools-windows.zip.sig
-          asset_name: c-tools-windows.zip.sig
-          asset_content_type: application/pgp-signature
-      - name: Upload docs and license
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/README.md
-          asset_name: README.md
-          asset_content_type: text/markdown
-      - name: Upload LICENSE
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/LICENSE
-          asset_name: LICENSE
-          asset_content_type: text/plain
+      - name: Create GitHub release and upload artifacts via gh
+        run: |
+          set -e
+          TAG=${{ needs.build-linux.outputs.next_tag }}
+          if [ -z "$TAG" ]; then
+            echo "No tag provided from build-linux; skipping release creation"
+            exit 0
+          fi
+          gh release create "$TAG" ./artifacts/* --title "$TAG" --notes-file ./artifacts/release_notes.md --draft=$(if [ "${RELEASE_DRAFT}" = 'true' ]; then echo true; else echo false; fi) || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
