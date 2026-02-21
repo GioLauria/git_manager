@@ -1,0 +1,50 @@
+name: Build C tools
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-linux:
+    name: Build on Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+      - name: Build
+        run: make
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: c-tools-linux
+          path: |
+            git_manager
+            clean_tags
+            automatic_readme_generator
+
+  build-windows:
+    name: Build on Windows (MSYS2)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+      - name: Install toolchain
+        run: pacman -S --noconfirm mingw-w64-x86_64-gcc mingw-w64-x86_64-make
+        shell: msys2
+      - name: Build
+        run: make
+        shell: msys2
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: c-tools-windows
+          path: |
+            git_manager.exe
+            clean_tags.exe
+            automatic_readme_generator.exe
