@@ -32,6 +32,33 @@ jobs:
           git add README.md
           git commit -m "chore(readme): regenerate README via automatic_readme_generator" || echo "No changes to commit"
           git push origin HEAD:main || echo "push failed"
+      - name: Create release tag if needed
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          set -e
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$latest_tag" ]; then
+            echo "No existing tags; creating v0.1.0"
+            next_tag="v0.1.0"
+          else
+            count=$(git rev-list ${latest_tag}..HEAD --count)
+            if [ "$count" -eq 0 ]; then
+              echo "No new commits since ${latest_tag}; skipping tag creation"
+              exit 0
+            fi
+            if echo "$latest_tag" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+              major=$(echo $latest_tag | sed -E 's/^v([0-9]+)\..*/\1/')
+              minor=$(echo $latest_tag | sed -E 's/^v[0-9]+\.([0-9]+)\..*/\1/')
+              patch=$(echo $latest_tag | sed -E 's/^v[0-9]+\.[0-9]+\.([0-9]+)$/\1/')
+              patch=$((patch+1))
+              next_tag="v${major}.${minor}.${patch}"
+            else
+              next_tag="v$(date +%Y%m%d%H%M%S)"
+            fi
+          fi
+          echo "Creating tag $next_tag"
+          git tag -a "$next_tag" -m "Release $next_tag"
+          git push origin "$next_tag"
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
