@@ -85,8 +85,11 @@ jobs:
           zip -j c-tools-linux.zip git_manager clean_tags automatic_readme_generator || true
           sha256sum c-tools-linux.zip > c-tools-linux.zip.sha256 || true
       - name: Sign Linux zip (if GPG key available)
-        if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
         run: |
+          if [ -z "$GPG_PRIVATE_KEY" ]; then
+            echo "No GPG_PRIVATE_KEY; skipping signing"
+            exit 0
+          fi
           echo "$GPG_PRIVATE_KEY" | gpg --batch --import
           gpg --batch --yes --output c-tools-linux.zip.sig --detach-sign c-tools-linux.zip
         env:
@@ -132,8 +135,11 @@ jobs:
           zip -j c-tools-windows.zip git_manager.exe clean_tags.exe automatic_readme_generator.exe
           sha256sum c-tools-windows.zip > c-tools-windows.zip.sha256 || true
       - name: Sign Windows zip (if GPG key available)
-        if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
         run: |
+          if [ -z "$GPG_PRIVATE_KEY" ]; then
+            echo "No GPG_PRIVATE_KEY; skipping signing"
+            exit 0
+          fi
           echo "$GPG_PRIVATE_KEY" | gpg --batch --import
           gpg --batch --yes --output c-tools-windows.zip.sig --detach-sign c-tools-windows.zip
         env:
