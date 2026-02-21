@@ -1,0 +1,2 @@
+CI trigger file
+Triggered by automation to test release creation on 2026-02-21T17:58:00+01:00
