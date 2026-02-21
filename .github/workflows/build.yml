@@ -36,7 +36,7 @@ jobs:
           git push origin HEAD:main || echo "push failed"
       - id: create_tag
         name: Create release tag if needed
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         run: |
           set -e
           remote_url=$(git config --get remote.origin.url || echo "")
@@ -81,7 +81,7 @@ jobs:
           zip -j c-tools-linux.zip git_manager clean_tags automatic_readme_generator || true
           sha256sum c-tools-linux.zip > c-tools-linux.zip.sha256 || true
       - name: Sign Linux zip (if GPG key available)
-        if: secrets.GPG_PRIVATE_KEY != ''
+        if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
         run: |
           echo "$GPG_PRIVATE_KEY" | gpg --batch --import
           gpg --batch --yes --output c-tools-linux.zip.sig --detach-sign c-tools-linux.zip
@@ -128,7 +128,7 @@ jobs:
           zip -j c-tools-windows.zip git_manager.exe clean_tags.exe automatic_readme_generator.exe
           sha256sum c-tools-windows.zip > c-tools-windows.zip.sha256 || true
       - name: Sign Windows zip (if GPG key available)
-        if: secrets.GPG_PRIVATE_KEY != ''
+        if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
         run: |
           echo "$GPG_PRIVATE_KEY" | gpg --batch --import
           gpg --batch --yes --output c-tools-windows.zip.sig --detach-sign c-tools-windows.zip
@@ -191,7 +191,7 @@ jobs:
           asset_name: c-tools-linux.zip
           asset_content_type: application/zip
       - name: Upload linux checksum
-        if: exists('./artifacts/c-tools-linux.zip.sha256')
+        continue-on-error: true
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -199,7 +199,7 @@ jobs:
           asset_name: c-tools-linux.zip.sha256
           asset_content_type: text/plain
       - name: Upload linux signature
-        if: exists('./artifacts/c-tools-linux.zip.sig')
+        continue-on-error: true
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -214,7 +214,7 @@ jobs:
           asset_name: c-tools-windows.zip
           asset_content_type: application/zip
       - name: Upload windows checksum
-        if: exists('./artifacts/c-tools-windows.zip.sha256')
+        continue-on-error: true
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -222,7 +222,7 @@ jobs:
           asset_name: c-tools-windows.zip.sha256
           asset_content_type: text/plain
       - name: Upload windows signature
-        if: exists('./artifacts/c-tools-windows.zip.sig')
+        continue-on-error: true
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
