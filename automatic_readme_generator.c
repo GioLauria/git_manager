@@ -3,6 +3,37 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <errno.h>
+
+/* Dump handling: timestamped JSON file per run */
+static FILE *dump_fp = NULL;
+static int dump_first = 1;
+
+static char *escape_json(const char *s) {
+    if (!s) return NULL;
+    size_t cap = strlen(s) * 2 + 1;
+    char *out = malloc(cap);
+    if (!out) return NULL;
+    size_t o = 0;
+    for (size_t i = 0; s[i]; i++) {
+        char c = s[i];
+        if (c == '"' || c == '\\') {
+            if (o + 2 + 1 >= cap) { cap *= 2; out = realloc(out, cap); }
+            out[o++] = '\\'; out[o++] = c;
+        } else if (c == '\n') {
+            if (o + 2 + 1 >= cap) { cap *= 2; out = realloc(out, cap); }
+            out[o++] = '\\'; out[o++] = 'n';
+        } else if (c == '\r') {
+            if (o + 2 + 1 >= cap) { cap *= 2; out = realloc(out, cap); }
+            out[o++] = '\\'; out[o++] = 'r';
+        } else {
+            if (o + 1 >= cap) { cap *= 2; out = realloc(out, cap); }
+            out[o++] = c;
+        }
+    }
+    out[o] = '\0';
+    return out;
+}
 
 static char *run_command_capture(const char *cmd) {
     char fullcmd[1024];
@@ -15,18 +46,22 @@ static char *run_command_capture(const char *cmd) {
         if (len + 1024 > cap) { cap *= 2; buf = realloc(buf, cap); }
         len += fread(buf+len, 1, 1024, fp);
     }
-    pclose(fp);
-    if (len == 0) { free(buf); return NULL; }
+    int status = pclose(fp);
+    int exitcode = status;
+    if (len == 0) { free(buf); buf = strdup(""); len = 0; }
     buf[len] = '\0';
 
-    /* append command and its output to dump.txt */
-    FILE *dump = fopen("dump.txt","a");
-    if (dump) {
-        fprintf(dump, "=== CMD: %s ===\n", cmd);
-        fwrite(buf, 1, len, dump);
-        fprintf(dump, "\n=== END CMD: %s ===\n\n", cmd);
-        fclose(dump);
+    /* write JSON entry to dump file */
+    if (dump_fp) {
+        char *esc_out = escape_json(buf);
+        char *esc_cmd = escape_json(cmd);
+        if (!dump_first) fprintf(dump_fp, ",\n");
+        fprintf(dump_fp, "  {\"cmd\": \"%s\", \"exit\": %d, \"output\": \"%s\"}", esc_cmd ? esc_cmd : "", exitcode, esc_out ? esc_out : "");
+        fflush(dump_fp);
+        dump_first = 0;
+        free(esc_out); free(esc_cmd);
     }
+
     return buf;
 }
 
@@ -39,8 +74,34 @@ static char *trim(char *s) {
 }
 
 int main(void) {
-    /* wipe dump file at start */
-    FILE *dw = fopen("dump.txt","w"); if (dw) fclose(dw);
+    /* create timestamped dump JSON file and write opening array */
+    time_t now0 = time(NULL);
+    struct tm tm0;
+#if defined(_WIN32) || defined(_WIN64)
+    struct tm *tmp0 = localtime(&now0);
+    if (tmp0) tm0 = *tmp0; else memset(&tm0,0,sizeof(tm0));
+#else
+    localtime_r(&now0, &tm0);
+#endif
+    char dumpname[128]; strftime(dumpname, sizeof(dumpname), "dump-%Y%m%d%H%M%S.json", &tm0);
+    dump_fp = fopen(dumpname, "w");
+    if (!dump_fp) {
+        fprintf(stderr, "warning: failed to open dump file '%s': ", dumpname);
+        perror(NULL);
+        /* fallback to a simple dump.json in current directory */
+        dump_fp = fopen("dump.json", "w");
+        if (!dump_fp) {
+            fprintf(stderr, "warning: fallback dump.json open failed: ");
+            perror(NULL);
+        } else {
+            fprintf(stderr, "info: using fallback dump.json for command dumps\n");
+            fprintf(dump_fp, "[\n");
+            dump_first = 1;
+        }
+    } else {
+        fprintf(dump_fp, "[\n");
+        dump_first = 1;
+    }
     /* get tags sorted by creation date (oldest first) */
     char *tags_out = run_command_capture("git for-each-ref --sort=creatordate --format=%(refname:short) refs/tags");
     if (!tags_out) {
@@ -156,7 +217,8 @@ int main(void) {
         } else {
             for (size_t j = 0; j < commit_counts[i]; j++) {
                 char *s = commit_lists[i][j]; char cid[64]; if (sscanf(s, "%63s", cid) < 1) continue; char *rest = s + strlen(cid); while (*rest == ' ') rest++;
-                char item[1024]; if (repo_url[0]) snprintf(item, sizeof(item), "- [%s](%s/commit/%s) - %s\n", cid, repo_url, cid, rest); else snprintf(item, sizeof(item), "- %s - %s\n", cid, rest);
+                char shortid[8]; strncpy(shortid, cid, 7); shortid[7]='\0';
+                char item[1024]; if (repo_url[0]) snprintf(item, sizeof(item), "- [%s](%s/commit/%s) - %s\n", shortid, repo_url, cid, rest); else snprintf(item, sizeof(item), "- %s - %s\n", shortid, rest);
                 strncat(notes, item, notes_cap - strlen(notes) - 1);
             }
             strncat(notes, "\n", notes_cap - strlen(notes) - 1);
@@ -171,7 +233,8 @@ int main(void) {
     } else {
         for (size_t j = 0; j < commit_counts[tcount]; j++) {
             char *s = commit_lists[tcount][j]; char cid[64]; if (sscanf(s, "%63s", cid) < 1) continue; char *rest = s + strlen(cid); while (*rest == ' ') rest++;
-            char item[1024]; if (repo_url[0]) snprintf(item, sizeof(item), "- [%s](%s/commit/%s) - %s\n", cid, repo_url, cid, rest); else snprintf(item, sizeof(item), "- %s - %s\n", cid, rest);
+            char shortid[8]; strncpy(shortid, cid, 7); shortid[7]='\0';
+            char item[1024]; if (repo_url[0]) snprintf(item, sizeof(item), "- [%s](%s/commit/%s) - %s\n", shortid, repo_url, cid, rest); else snprintf(item, sizeof(item), "- %s - %s\n", shortid, rest);
             strncat(notes, item, notes_cap - strlen(notes) - 1);
         }
         strncat(notes, "\n", notes_cap - strlen(notes) - 1);
@@ -193,6 +256,13 @@ int main(void) {
     fputs(notes, outf);
     fclose(outf);
     remove("README.md"); rename("README.md.tmp","README.md");
+
+    /* close dump JSON array */
+    if (dump_fp) {
+        fprintf(dump_fp, "\n]\n");
+        fclose(dump_fp);
+        dump_fp = NULL;
+    }
 
     if (tags) { for (size_t i=0;i<tcount;i++) free(tags[i]); free(tags); }
     free(tags_out); if (first_commit) free(first_commit); if (remote_out) free(remote_out); free(notes);
