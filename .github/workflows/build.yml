@@ -80,18 +80,28 @@ jobs:
             git_manager
             clean_tags
             automatic_readme_generator
+      - name: Package Linux artifacts
+        if: steps.create_tag.outputs.next_tag != ''
+        env:
+          TAG: ${{ steps.create_tag.outputs.next_tag }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zip
+          zip -j "c-tools-linux-${TAG}.zip" git_manager clean_tags automatic_readme_generator
       - name: Create GitHub release and attach artifacts
         if: steps.create_tag.outputs.next_tag != ''
+        env:
+          TAG: ${{ steps.create_tag.outputs.next_tag }}
         run: |
           set -e
           echo "Installing GitHub CLI"
           sudo apt-get update
           sudo apt-get install -y gh
           echo "$GITHUB_TOKEN" | gh auth login --with-token
-          TAG=${{ steps.create_tag.outputs.next_tag }}
           echo "Creating release $TAG with release_notes.md"
-          # upload assets and create release
-          gh release create "$TAG" git_manager clean_tags automatic_readme_generator --title "$TAG" --notes-file release_notes.md || true
+          # use packaged zip for linux artifacts
+          ASSET="c-tools-linux-${TAG}.zip"
+          gh release create "$TAG" "$ASSET" --title "$TAG" --notes-file release_notes.md || true
 
   build-windows-cross:
     name: Cross-build Windows executables on Ubuntu
@@ -111,6 +121,11 @@ jobs:
           for f in git_manager clean_tags automatic_readme_generator; do
             if [ -f "$f" ]; then mv "$f" "$f.exe"; fi
           done
+      - name: Package Windows artifacts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zip
+          zip -j c-tools-windows.zip git_manager.exe clean_tags.exe automatic_readme_generator.exe
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
