@@ -42,27 +42,27 @@ jobs:
             automatic_readme_generator
 
   build-windows:
-    name: Build on Windows (bash)
+    name: Build on Windows (MSYS2)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Setup bash
-        uses: bash/setup-bash@v2
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
         with:
           update: true
       - name: Install toolchain
         run: pacman -S --noconfirm mingw-w64-x86_64-gcc mingw-w64-x86_64-make
-        shell: bash
+        shell: msys2
       - name: Build
         run: make
-        shell: bash
+        shell: msys2
       - name: Generate README
         run: |
           chmod +x automatic_readme_generator
           ./automatic_readme_generator
-        shell: bash
+        shell: msys2
       - name: Commit README
         run: |
           git config user.name "github-actions[bot]"
@@ -70,7 +70,7 @@ jobs:
           git add README.md
           git commit -m "chore(readme): regenerate README via automatic_readme_generator" || echo "No changes to commit"
           git push origin HEAD:main || echo "push failed"
-        shell: bash
+        shell: msys2
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
