@@ -2,7 +2,7 @@
 
 Repository: https://github.com/GioLauria/git_manager
 
-_Generated: 2026-02-21 16:50:43 +0000_
+_Generated: 2026-02-21 16:54:37 +0000_
 
 ## Release Notes
 
@@ -82,4 +82,6 @@ _Generated: 2026-02-21 16:50:43 +0000_
 - [20168b4](https://github.com/GioLauria/git_manager/commit/20168b4fbfa07709f71d1f597a8e974553b0f65e) - chore(readme): regenerate README via automatic_readme_generator
 - [ded7a22](https://github.com/GioLauria/git_manager/commit/ded7a222afcbaa7386d8a81bd6848ee1d0b717fe) - fix: fallback when creating dump file and warn
 - [432de2c](https://github.com/GioLauria/git_manager/commit/432de2c6d78fdd1090bf2ecc42330eb756db22bd) - chore: resolve README conflict and update .gitignore
+- [7428969](https://github.com/GioLauria/git_manager/commit/7428969e41f7dae2581b1e02882d4f73a3293f9e) - chore(readme): regenerate README via automatic_readme_generator
+- [bd0aa0f](https://github.com/GioLauria/git_manager/commit/bd0aa0f1a253040d8c86ec5417746d80f2da379e) - ci: create annotated GitHub Release with Unreleased notes and upload artifacts
 
