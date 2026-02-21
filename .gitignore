@@ -1,0 +1,23 @@
+# Ignore compiled C binaries and temporary build files
+git_manager
+clean_tags
+automatic_readme_generator
+
+# Windows executables
+*.exe
+
+# Object files and editors
+*.o
+*.obj
+*.dll
+
+# Temporary/readme artifacts
+README.md.tmp
+
+# Build artifacts
+/build/
+
+# Backup and OS files
+*~
+.DS_Store
+Thumbs.db
