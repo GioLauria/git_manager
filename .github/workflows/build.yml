@@ -77,19 +77,27 @@ jobs:
       - name: Package Linux artifacts
         run: |
           sudo apt-get update
-          sudo apt-get install -y zip
+          sudo apt-get install -y zip coreutils gnupg
           zip -j c-tools-linux.zip git_manager clean_tags automatic_readme_generator || true
-      - name: Upload linux zip
+          sha256sum c-tools-linux.zip > c-tools-linux.zip.sha256 || true
+      - name: Sign Linux zip (if GPG key available)
+        if: secrets.GPG_PRIVATE_KEY != ''
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          gpg --batch --yes --output c-tools-linux.zip.sig --detach-sign c-tools-linux.zip
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      - name: Upload linux artifacts
         uses: actions/upload-artifact@v4
         with:
           name: c-tools-linux
-          path: c-tools-linux.zip
-      - name: Upload release notes
-        if: steps.create_tag.outputs.next_tag != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-notes
-          path: release_notes.md
+          path: |
+            c-tools-linux.zip
+            c-tools-linux.zip.sha256
+            c-tools-linux.zip.sig
+            release_notes.md
+            README.md
+            LICENSE
 
   build-windows-cross:
     name: Cross-build Windows executables on Ubuntu
@@ -112,25 +120,42 @@ jobs:
       - name: Package Windows artifacts
         run: |
           sudo apt-get update
-          sudo apt-get install -y zip
+          sudo apt-get install -y zip coreutils gnupg
           zip -j c-tools-windows.zip git_manager.exe clean_tags.exe automatic_readme_generator.exe
+          sha256sum c-tools-windows.zip > c-tools-windows.zip.sha256 || true
+      - name: Sign Windows zip (if GPG key available)
+        if: secrets.GPG_PRIVATE_KEY != ''
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          gpg --batch --yes --output c-tools-windows.zip.sig --detach-sign c-tools-windows.zip
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
           name: c-tools-windows
-          path: c-tools-windows.zip
+          path: |
+            c-tools-windows.zip
+            c-tools-windows.zip.sha256
+            c-tools-windows.zip.sig
+            README.md
+            LICENSE
 
   create-release:
     name: Create Release (attach both zips)
     needs: [build-linux, build-windows-cross]
     runs-on: ubuntu-latest
+    env:
+      # set to 'true' to create a draft release, set prerelease to 'true' to mark prerelease
+      RELEASE_DRAFT: 'true'
+      RELEASE_PRERELEASE: 'false'
     steps:
-      - name: Download linux zip
+      - name: Download linux artifacts
         uses: actions/download-artifact@v4
         with:
           name: c-tools-linux
           path: ./artifacts
-      - name: Download windows zip
+      - name: Download windows artifacts
         uses: actions/download-artifact@v4
         with:
           name: c-tools-windows
@@ -140,20 +165,74 @@ jobs:
         with:
           name: release-notes
           path: ./artifacts
-      - name: Install GitHub CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gh
-      - name: Create GitHub Release and attach both artifacts
-        if: needs.build-linux.outputs.next_tag != ''
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ needs.build-linux.outputs.next_tag }}
+          release_name: ${{ needs.build-linux.outputs.next_tag }}
+          body_path: ./artifacts/release_notes.md
+          draft: ${{ env.RELEASE_DRAFT }}
+          prerelease: ${{ env.RELEASE_PRERELEASE }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ needs.build-linux.outputs.next_tag }}
-        run: |
-          set -e
-          echo "$GITHUB_TOKEN" | gh auth login --with-token
-          ASSET_L=./artifacts/c-tools-linux.zip
-          ASSET_W=./artifacts/c-tools-windows.zip
-          NOTES=./artifacts/release_notes.md
-          echo "Creating release $TAG with assets: $ASSET_L $ASSET_W"
-          gh release create "$TAG" "$ASSET_L" "$ASSET_W" --title "$TAG" --notes-file "$NOTES" || true
+      - name: Upload linux zip to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/c-tools-linux.zip
+          asset_name: c-tools-linux.zip
+          asset_content_type: application/zip
+      - name: Upload linux checksum
+        if: exists('./artifacts/c-tools-linux.zip.sha256')
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/c-tools-linux.zip.sha256
+          asset_name: c-tools-linux.zip.sha256
+          asset_content_type: text/plain
+      - name: Upload linux signature
+        if: exists('./artifacts/c-tools-linux.zip.sig')
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/c-tools-linux.zip.sig
+          asset_name: c-tools-linux.zip.sig
+          asset_content_type: application/pgp-signature
+      - name: Upload windows zip to release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/c-tools-windows.zip
+          asset_name: c-tools-windows.zip
+          asset_content_type: application/zip
+      - name: Upload windows checksum
+        if: exists('./artifacts/c-tools-windows.zip.sha256')
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/c-tools-windows.zip.sha256
+          asset_name: c-tools-windows.zip.sha256
+          asset_content_type: text/plain
+      - name: Upload windows signature
+        if: exists('./artifacts/c-tools-windows.zip.sig')
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/c-tools-windows.zip.sig
+          asset_name: c-tools-windows.zip.sig
+          asset_content_type: application/pgp-signature
+      - name: Upload docs and license
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: README.md
+          asset_name: README.md
+          asset_content_type: text/markdown
+      - name: Upload LICENSE
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: LICENSE
+          asset_name: LICENSE
+          asset_content_type: text/plain
